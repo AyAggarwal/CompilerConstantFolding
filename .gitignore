@@ -1,0 +1,9 @@
+## IDE Files
+**/*.idea/
+
+## Build Artifacts
+**/target
+
+## OS Files
+**.DS_Store
+**.*.DS_Store
