@@ -120,7 +120,7 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Value::Integer(integer) => {
-                write!(f, "{}", integer)
+                write!(f, "{}u8", integer)
             }
             Value::Identifier(identifier) => {
                 write!(f, "{}", identifier)
