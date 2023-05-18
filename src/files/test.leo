@@ -1,3 +1,3 @@
 function main() {
-    let b = 23u8 + 7u8 + 4u8 + 6u8 + 7u8;
+    let b = 8u8 - 7u8 + 25u8;
 }

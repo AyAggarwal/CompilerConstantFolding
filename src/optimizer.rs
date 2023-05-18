@@ -1,9 +1,9 @@
-use pest::error::Error;
+use std::error::Error;
 use crate::ast::*;
 use crate::{Program, Rule,Expression,};
 use crate::Value::Integer;
 
-pub fn fold(program: Program) -> Result<Program,Error<Rule>> {
+pub fn fold(program: Program) -> Result<Program,Box<dyn Error>> {
     let name = program.name;
     let inputs = program.inputs;
     let mut statements = program.statements;
@@ -37,19 +37,68 @@ pub fn evaluate(exp: Expression) -> Option<u8> {
             match operator {
                 Operator::Add => {
                     let rv = evaluate(*right).unwrap();
-                    return Some(lv + rv)
+                    return Some(add_u8(lv,rv))
                 },
-                Operator::Subtract => todo!(),
-                Operator::Multiply => todo!(),
-                Operator::Divide => todo!(),
+                Operator::Subtract => {
+                    let rv = evaluate(*right).unwrap();
+                    return Some(sub_u8(lv, rv))
+                },
+                Operator::Multiply => {
+                    let rv = evaluate(*right).unwrap();
+                    return Some(mul_u8(lv,rv))
+                },
+                Operator::Divide => {
+                    let rv = evaluate(*right).unwrap();
+                    return Some(div_u8(lv,rv))
+                },
             }
         },
         Expression::Value(x) => {
-            match *x {
+            return match *x {
                 Integer(val) => Some(val),
-                Value::Identifier(_) => return None,
-                Value::Expression(_) => return None,
+                Value::Identifier(_) => None,
+                Value::Expression(_) => None,
             }
         },
     }
 }
+
+pub fn add_u8(v1: u8, v2: u8) -> u8 {
+    let (val, overflow) = v1.overflowing_add(v2);
+    if overflow {
+        panic!("addition of values {} and {} caused integer overflow",v1,v2)
+    } else {
+        val
+    }
+}
+
+pub fn sub_u8(v1: u8, v2: u8) -> u8 {
+    let (val, overflow) = v1.overflowing_sub(v2);
+    if overflow {
+        panic!("subtraction of values {} and {} caused integer overflow",v1,v2)
+    } else {
+        val
+    }
+}
+
+pub fn mul_u8(v1: u8, v2: u8) -> u8 {
+    let (val, overflow) = v1.overflowing_mul(v2);
+    if overflow {
+        panic!("multiplication of values {} and {} caused integer overflow",v1,v2)
+    } else {
+        val
+    }
+}
+
+pub fn div_u8(v1: u8, v2: u8) -> u8 {
+    if v2 == 0 {
+        panic!("division by zero")
+    }
+    let (val, overflow) = v1.overflowing_div(v2);
+    if overflow {
+        panic!("addition of values {} and {} caused integer overflow",v1,v2)
+    } else {
+        val
+    }
+}
+
