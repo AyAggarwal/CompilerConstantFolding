@@ -36,7 +36,7 @@ pub fn parse(source: &str) -> Result<Program, Error<Rule>> {
             _ => {}
         }
     }
-
+    println!("{:?}",statements);
     Ok(Program {
         name,
         inputs,
