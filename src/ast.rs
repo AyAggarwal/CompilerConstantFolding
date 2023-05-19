@@ -60,6 +60,18 @@ pub enum Operator {
     Divide,
 }
 
+//trait to get the type of a variable for code generation
+//Value::integer(Type) enum in AST could be used instead  
+trait TypeInfo {
+    fn type_of(&self) -> &'static str;
+}
+
+impl TypeInfo for u8 {
+    fn type_of(&self) -> &'static str {
+        "u8"
+    }
+}
+
 impl std::fmt::Display for Program {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let inputs = self.inputs.iter().map(|input| {
@@ -120,7 +132,7 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Value::Integer(integer) => {
-                write!(f, "{}u8", integer)
+                write!(f, "{}{}", integer,integer.type_of())
             }
             Value::Identifier(identifier) => {
                 write!(f, "{}", identifier)

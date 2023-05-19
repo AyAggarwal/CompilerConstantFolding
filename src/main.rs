@@ -35,7 +35,39 @@ fn main() {
 mod tests {
     use std::fs;
     use std::io::Write;
-    use crate::{ast, parser::*, optimizer::*};
+    use crate::{parser::*, optimizer::*};
+
+    #[test]
+    fn test_basic() {
+        run_test("test_basic")
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_subtract_underflow() {
+        run_test("test_sub_underflow")
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_add_overflow() {
+        run_test("test_add_overflow")
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_div_zero() {
+        run_test("test_div_zero")
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_mul_overflow() {
+        run_test("test_mul_overflow")
+    }
+
+
+
     fn write_testfile(testname: &str) {
         let read_from = format!("src/files/tests/{}.leo",testname);
         let unparsed_file = fs::read_to_string(read_from).expect("cannot read file");
@@ -47,6 +79,7 @@ mod tests {
         let mut w = fs::File::create(write_to).unwrap();
         write!(&mut w, "{}", optimized_file).unwrap();
     }
+    
     fn compare_testfile(testname: &str) {
         let path_to_actual = format!("src/files/target/{}Actual.leo",testname);
         let actual = fs::read_to_string(path_to_actual).expect("cannot read file");
@@ -57,17 +90,8 @@ mod tests {
         assert_eq!(actual,expected);
     }
 
-
-    #[test]
-    fn test_basic() {
-        write_testfile("test");
-        compare_testfile("test");
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_subtract_underflow() {
-        write_testfile("test2");
-        compare_testfile("test2");
+    fn run_test(testname: &str) {
+        write_testfile(testname);
+        compare_testfile(testname);
     }
 }

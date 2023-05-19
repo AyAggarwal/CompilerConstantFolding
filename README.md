@@ -1,67 +1,19 @@
-# Coding Challenge: Constant Folding
-**Task: Implement a constant folding optimization in Rust.**
+# Aleo Constant Folidng Implemetation
+This repo contains an example optimizer for the basic leo subset language. 
 
+## Implementation
+The LeoParser derived from the leo subset grammar creates an AST with a list of statements. There is only one type of statement which is an assignment of a variable to an expression. The parser creates an expression tree right-recursively. Thus, the optimizer evaluates the expressions recursively, bubbling up the evaluated expressions to the root of the parsed AST. 
 
-## Challenge Statement
+The optimizer catches overflow, underflow, and division by zero by using helper functions to perform evaluation of the integer expressions. These errors cause panic if caught, because the program would not run as intended. 
 
-Given the grammar rules for a small subset of the Leo programming language as described, your task is to implement a constant folding optimization in a compiler for this language.
+## Testing
+The testing suite uses cargo, and the help of directory strucures. The helper function `write_testfile` takes in a filename and looks in the `src/files/tests` directory for the corresponding filename. It writes out the optimized file to `src/files/target`. Next, the `compare_testfile` function will read the generated target as well as the solution file in `src/files/expected` and compare in an assert statement. 
 
-Constant folding is a compiler optimization technique that identifies and evaluates constant expressions at compile-time rather than computing them at runtime. For example, in the Leo language, an expression such as `1u8 + 1u8` can be simplified to `2u8` during the compilation.
+This functionality is wrapped in a clean `run_test` function so the developer can create test files manually and easily add them to the testing suite. 
 
-In the given repository the lexer and parser are already implemented
+## Code Generation
+The provided `fmt::Display` imeplemetations work exactly as how I would go about implementing code generation, essentially reconstructing the program using the provided grammar and AST. The only implementation needed was to have the Display for `Value` read the type of the integer and print it out. Currently, this uses Rust's `u8` type but in the future the `Value` from the AST can contian an `Integer(Type(U8))` instead to have the type wrapped into the AST. The benefit of this would be including types that don't exist in Rust natively. 
 
-* Lexer: This will break down the Leo program into tokens. Tokens could be keywords (like "function", "let"), identifiers, operators, or literals.
-
-* Parser: This will parse the tokens into an abstract syntax tree (AST) that represents the program's structure.
-
-You are expected to:
-
-1. Implement a constant folding optimization pass: This pass will traverse the AST, identify constant expressions (like the `1u8 + 1u8` in the assignment `let a = 1u8 + 1u8;`), evaluate them, and replace them with their results.
-
-2. Implement code generation: Generate the equivalent Leo code from the optimized AST.
-
-Your implementation should be able to handle input programs that conform to the provided grammar, and output an equivalent, but optimized, Leo program. For instance, the program:
-
-```leo
-function main() {
-    let a = 1u8 + 1u8;
-}
-```
-
-Should be optimized to:
-
-```leo
-function main() {
-    let a = 2u8;
-}
-```
-
-Remember to handle potential edge cases, like constant folding in nested expressions.
-
-**Some considerations:**
-- **Robustness.** Will your algorithm hold for more complex programs?
-- **Testing.** How would you design a robust testing infrastructure to cover all edge cases?
-- **Errors.** How do you handle errors?
-- **Code cleanliness, organization, and documentation.**
-
-### Resources
-
-https://www.rust-lang.org/tools/install
-
-https://github.com/pest-parser/pest
-
-https://pest.rs/book/
-
-https://en.wikipedia.org/wiki/Formal_grammar
-
-https://craftinginterpreters.com/parsing-expressions.html
-
-https://craftinginterpreters.com/
-
-https://en.wikipedia.org/wiki/Constant_folding
-
-https://en.wikipedia.org/wiki/Compile-time_function_execution
-
-
-
+## Order of Operations
+`test_order_of_operations.leo` in the tests directory contains expressions that will fail on right-recursive evalutation, but would be evaluate correctly left-to-right.
 

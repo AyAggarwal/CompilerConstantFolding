@@ -33,22 +33,18 @@ pub fn evaluate(exp: Expression) -> Option<u8> {
                 Integer(l) => l,
                 _ => return None
             };
-
+            let rv = evaluate(*right).unwrap();
             match operator {
                 Operator::Add => {
-                    let rv = evaluate(*right).unwrap();
                     return Some(add_u8(lv,rv))
                 },
                 Operator::Subtract => {
-                    let rv = evaluate(*right).unwrap();
                     return Some(sub_u8(lv, rv))
                 },
                 Operator::Multiply => {
-                    let rv = evaluate(*right).unwrap();
                     return Some(mul_u8(lv,rv))
                 },
                 Operator::Divide => {
-                    let rv = evaluate(*right).unwrap();
                     return Some(div_u8(lv,rv))
                 },
             }
