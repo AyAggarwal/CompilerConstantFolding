@@ -18,7 +18,7 @@ pub struct Input {
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Type {
-    U8
+    U8,
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -39,7 +39,7 @@ pub enum Expression {
         right: Box<Expression>,
     },
     // 1u8
-    Value(Box<Value>)
+    Value(Box<Value>),
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -61,7 +61,7 @@ pub enum Operator {
 }
 
 //trait to get the type of a variable for code generation
-//Value::integer(Type) enum in AST could be used instead  
+//Value::integer(Type) enum in AST could be used instead
 trait TypeInfo {
     fn type_of(&self) -> &'static str;
 }
@@ -74,22 +74,35 @@ impl TypeInfo for u8 {
 
 impl std::fmt::Display for Program {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let inputs = self.inputs.iter().map(|input| {
-            format!("{:?}: {:?}", input.name, input.input_type)
-        }).collect::<Vec<String>>().join(", ");
+        let inputs = self
+            .inputs
+            .iter()
+            .map(|input| format!("{:?}: {:?}", input.name, input.input_type))
+            .collect::<Vec<String>>()
+            .join(", ");
 
-        let statements = self.statements.iter().map(|statement| {
-            format!("    {}", statement)
-        }).collect::<Vec<String>>().join("\n");
+        let statements = self
+            .statements
+            .iter()
+            .map(|statement| format!("    {}", statement))
+            .collect::<Vec<String>>()
+            .join("\n");
 
-        write!(f, "function {}({}) {{\n{}\n}}", self.name, inputs, statements)
+        write!(
+            f,
+            "function {}({}) {{\n{}\n}}",
+            self.name, inputs, statements
+        )
     }
 }
 
 impl std::fmt::Display for Statement {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Statement::Assign { variable, expression } => {
+            Statement::Assign {
+                variable,
+                expression,
+            } => {
                 write!(f, "let {} = {};", variable, expression)
             }
         }
@@ -99,7 +112,11 @@ impl std::fmt::Display for Statement {
 impl std::fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Expression::Binary { left, operator, right } => {
+            Expression::Binary {
+                left,
+                operator,
+                right,
+            } => {
                 write!(f, "{} {} {}", left, operator, right)
             }
             Expression::Value(value) => {
@@ -132,7 +149,7 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Value::Integer(integer) => {
-                write!(f, "{}{}", integer,integer.type_of())
+                write!(f, "{}{}", integer, integer.type_of())
             }
             Value::Identifier(identifier) => {
                 write!(f, "{}", identifier)

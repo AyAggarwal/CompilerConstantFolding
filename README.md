@@ -17,3 +17,4 @@ The provided `fmt::Display` imeplemetations work exactly as how I would go about
 ## Order of Operations
 `test_order_of_operations.leo` in the tests directory contains expressions that will fail on right-recursive evalutation, but would be evaluate correctly left-to-right.
 
+A genuine attempt at implementing Pratt Parsing is listed on the `pratt` branch. Reached a point where it was not worth refactoring the code to work with Pest's pratt parser, nor for the purposes of this challenge did it make sense to implement it from scratch. 

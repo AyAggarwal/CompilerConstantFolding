@@ -1,6 +1,6 @@
+use crate::ast::*;
 use pest::error::Error;
 use pest::Parser;
-use crate::ast::*;
 
 // The pest parser for Leo
 
@@ -23,20 +23,20 @@ pub fn parse(source: &str) -> Result<Program, Error<Rule>> {
                 let mut pair = pair.into_inner();
 
                 // Parse function name
-                name =  pair.next().unwrap().as_str().to_string();
+                name = pair.next().unwrap().as_str().to_string();
 
                 // Parse function inputs if any
                 if pair.next().is_some() {
                     inputs = parse_inputs(pair.next().unwrap());
                 }
-            },
+            }
             Rule::statement => {
                 statements.push(parse_statement(pair.into_inner().next().unwrap()));
             }
             _ => {}
         }
     }
-    println!("{:?}",statements);
+    println!("{:?}", statements);
     Ok(Program {
         name,
         inputs,
@@ -55,10 +55,7 @@ fn parse_inputs(pair: pest::iterators::Pair<Rule>) -> Vec<Input> {
                 let name = pair.next().unwrap().as_str().to_string();
                 let input_type = parse_type(pair.next().unwrap());
 
-                inputs.push(Input {
-                    name,
-                    input_type,
-                });
+                inputs.push(Input { name, input_type });
             }
             _ => {}
         }
@@ -70,7 +67,7 @@ fn parse_inputs(pair: pest::iterators::Pair<Rule>) -> Vec<Input> {
 fn parse_type(pair: pest::iterators::Pair<Rule>) -> Type {
     match pair.as_str() {
         "u8" => Type::U8,
-        _ => panic!("failed to parse type")
+        _ => panic!("failed to parse type"),
     }
 }
 
@@ -87,7 +84,7 @@ fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Statement {
                 expression,
             }
         }
-        _ => panic!("failed to parse statement")
+        _ => panic!("failed to parse statement"),
     }
 }
 
@@ -113,24 +110,21 @@ fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Expression {
                 Rule::value => {
                     Expression::Value(Box::new(parse_value(pair.into_inner().next().unwrap())))
                 }
-                Rule::integer => {
-                    Expression::Value(Box::new(parse_value(pair)))
-                }
-                _ => panic!("failed to parse inner expression")
+                Rule::integer => Expression::Value(Box::new(parse_value(pair))),
+                _ => panic!("failed to parse inner expression"),
             }
         }
-        _ => panic!("failed to parse expression")
+        _ => panic!("failed to parse expression"),
     }
 }
 
 fn parse_value(pair: pest::iterators::Pair<Rule>) -> Value {
     match pair.as_rule() {
         Rule::integer => {
-
             // Parse the integer and trim the value type
             let int_str = pair.as_str();
             let int_len = int_str.len();
-            let integer = &int_str[..int_len-2].parse::<u8>().unwrap();
+            let integer = &int_str[..int_len - 2].parse::<u8>().unwrap();
 
             Value::Integer(*integer)
         }
@@ -146,7 +140,7 @@ fn parse_value(pair: pest::iterators::Pair<Rule>) -> Value {
 
             Value::Expression(Box::new(expression))
         }
-        _ => panic!("failed to parse value")
+        _ => panic!("failed to parse value"),
     }
 }
 
@@ -156,6 +150,6 @@ fn parse_operator(pair: pest::iterators::Pair<Rule>) -> Operator {
         "-" => Operator::Subtract,
         "*" => Operator::Multiply,
         "/" => Operator::Divide,
-        _ => panic!("failed to parse operator")
+        _ => panic!("failed to parse operator"),
     }
 }
