@@ -1,9 +1,28 @@
 use crate::ast::*;
 use crate::Value::Integer;
-use crate::{Expression, Program, Rule};
-use std::error::Error;
+use crate::{Expression, Program};
+use std::fmt;
 
-pub fn fold(program: Program) -> Result<Program, Box<dyn Error>> {
+type Result<T> = std::result::Result<T, CompilerError>;
+
+#[derive(Debug, PartialEq)]
+pub enum CompilerError {
+    Underflow,
+    Overflow,
+    DivByZero,
+}
+
+impl fmt::Display for CompilerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CompilerError::Underflow => write!(f, "Integer underflow during evaluation"),
+            CompilerError::Overflow => write!(f, "Integer overflow during evaluation"),
+            CompilerError::DivByZero => write!(f, "Division by Zero during evaluation"),
+        }
+    }
+}
+
+pub fn fold(program: Program) -> Result<Program> {
     let name = program.name;
     let inputs = program.inputs;
     let mut statements = program.statements;
@@ -15,9 +34,10 @@ pub fn fold(program: Program) -> Result<Program, Box<dyn Error>> {
             } => {
                 let opt = evaluate(expression.clone());
                 match opt {
-                    Some(val) => {
-                        *expression = Expression::Value(Box::new(Integer(val)));
-                    }
+                    Some(eval_result) => match eval_result {
+                        Ok(val) => *expression = Expression::Value(Box::new(Integer(val))),
+                        Err(e) => return Err(e),
+                    },
                     None => continue,
                 }
             }
@@ -31,7 +51,7 @@ pub fn fold(program: Program) -> Result<Program, Box<dyn Error>> {
 }
 
 //has to be able to run a pass
-pub fn evaluate(exp: Expression) -> Option<u8> {
+fn evaluate(exp: Expression) -> Option<Result<u8>> {
     match exp {
         Expression::Binary {
             left,
@@ -42,7 +62,18 @@ pub fn evaluate(exp: Expression) -> Option<u8> {
                 Integer(l) => l,
                 _ => return None,
             };
-            let rv = evaluate(*right).unwrap();
+            let rv;
+            let eval_valid = evaluate(*right);
+            match eval_valid {
+                Some(eval_result) => match eval_result {
+                    Ok(int) => {
+                        rv = int;
+                    }
+                    Err(e) => return Some(Err(e)),
+                },
+                None => return None,
+            }
+
             match operator {
                 Operator::Add => Some(add_u8(lv, rv)),
                 Operator::Subtract => Some(sub_u8(lv, rv)),
@@ -51,60 +82,48 @@ pub fn evaluate(exp: Expression) -> Option<u8> {
             }
         }
         Expression::Value(x) => match *x {
-            Integer(val) => Some(val),
-            Value::Identifier(_) => None,
+            Integer(val) => Some(Ok(val)),
+            Value::Identifier(_iden) => None,
             Value::Expression(_) => None,
         },
     }
 }
 
-pub fn add_u8(v1: u8, v2: u8) -> u8 {
+fn add_u8(v1: u8, v2: u8) -> Result<u8> {
     let (val, overflow) = v1.overflowing_add(v2);
     if overflow {
-        panic!(
-            "addition of values {} and {} caused integer overflow",
-            v1, v2
-        )
+        Err(CompilerError::Overflow)
     } else {
-        val
+        Ok(val)
     }
 }
 
-pub fn sub_u8(v1: u8, v2: u8) -> u8 {
-    let (val, overflow) = v1.overflowing_sub(v2);
-    if overflow {
-        panic!(
-            "subtraction of values {} and {} caused integer overflow",
-            v1, v2
-        )
+fn sub_u8(v1: u8, v2: u8) -> Result<u8> {
+    let (val, underflow) = v1.overflowing_sub(v2);
+    if underflow {
+        Err(CompilerError::Underflow)
     } else {
-        val
+        Ok(val)
     }
 }
 
-pub fn mul_u8(v1: u8, v2: u8) -> u8 {
+fn mul_u8(v1: u8, v2: u8) -> Result<u8> {
     let (val, overflow) = v1.overflowing_mul(v2);
     if overflow {
-        panic!(
-            "multiplication of values {} and {} caused integer overflow",
-            v1, v2
-        )
+        Err(CompilerError::Overflow)
     } else {
-        val
+        Ok(val)
     }
 }
 
-pub fn div_u8(v1: u8, v2: u8) -> u8 {
+fn div_u8(v1: u8, v2: u8) -> Result<u8> {
     if v2 == 0 {
-        panic!("division by zero")
+        return Err(CompilerError::DivByZero);
     }
     let (val, overflow) = v1.overflowing_div(v2);
     if overflow {
-        panic!(
-            "addition of values {} and {} caused integer overflow",
-            v1, v2
-        )
+        Err(CompilerError::Overflow)
     } else {
-        val
+        Ok(val)
     }
 }

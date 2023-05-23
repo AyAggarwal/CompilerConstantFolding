@@ -1,3 +1,3 @@
 function main() {
-    let a = 1u8 - 4u8
+    let a = 1u8 - 4u8;
 }

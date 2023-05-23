@@ -36,7 +36,6 @@ pub fn parse(source: &str) -> Result<Program, Error<Rule>> {
             _ => {}
         }
     }
-    println!("{:?}", statements);
     Ok(Program {
         name,
         inputs,
@@ -111,7 +110,8 @@ fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Expression {
                     Expression::Value(Box::new(parse_value(pair.into_inner().next().unwrap())))
                 }
                 Rule::integer => Expression::Value(Box::new(parse_value(pair))),
-                _ => panic!("failed to parse inner expression"),
+                Rule::ident => Expression::Value(Box::new(parse_value(pair))),
+                _ => panic!("failed to parse inner expression")
             }
         }
         _ => panic!("failed to parse expression"),
