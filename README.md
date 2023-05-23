@@ -22,6 +22,14 @@ To test the advanced robustness features run the following command in the root d
 ```
 cargo test
 ```
+## Feature List
+- Constant Folding in Assign statements
+- Identifier based memory and folding
+- Boolean folding in assingn statements
+- If statements
+- Folding of If statements, and nested code
+- code generation in a simple CLI command
+- Error handleing and reporting
 
 # Implementation Overview
 ### Optimizer

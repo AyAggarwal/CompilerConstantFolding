@@ -17,6 +17,8 @@ pub fn fold(program: Program) -> Result<Program> {
 
     //iterate through statements and attempt evaluation
     let mut statements = program.statements;
+
+    //construct a new list during iteration
     let mut new_statements = Vec::new();
     for statement in statements.iter_mut() {
         match statement {
@@ -56,19 +58,23 @@ pub fn fold(program: Program) -> Result<Program> {
                 let opt = evaluate(expression.clone(), &mut memory);
                 match opt {
                     Some(result) => match result {
+                        // If there is a boolean returned
                         Ok(boolean) => {
                             if let Boolean(x) = boolean {
+                                //append the winning code block from if expression 
                                 if x {
                                     new_statements.append(statements_a);
                                 } else {
                                     new_statements.append(statements_b);
                                 }
                             } else {
+                                //move on
                                 new_statements.push(statement.clone());
                             }
                         }
                         Err(e) => return Err(e),
                     },
+                    //move on
                     None => new_statements.push(statement.clone()),
                 }
             }
@@ -81,7 +87,7 @@ pub fn fold(program: Program) -> Result<Program> {
     })
 }
 
-//has to be able to run a pass
+//evaluates expressions of various kinds detecting errors
 fn evaluate(exp: Expression, memory: &mut HashMap<String, Value>) -> Option<Result<Value>> {
     match exp {
         Expression::Binary {
@@ -222,7 +228,7 @@ fn div_u8(v1: Value, v2: Value) -> Result<Value> {
     }
 }
 
-//helper function to attempt multiplication and handle errors
+//helper function to attempt gt and handle errors
 fn gt_bool(v1: Value, v2: Value) -> Result<Value> {
     match v1 {
         Integer(x) => match v2 {
@@ -239,7 +245,7 @@ fn gt_bool(v1: Value, v2: Value) -> Result<Value> {
     }
 }
 
-//helper function to attempt multiplication and handle errors
+//helper function to attempt lt and handle errors
 fn lt_bool(v1: Value, v2: Value) -> Result<Value> {
     match v1 {
         Integer(x) => match v2 {
@@ -256,7 +262,7 @@ fn lt_bool(v1: Value, v2: Value) -> Result<Value> {
     }
 }
 
-//helper function to attempt multiplication and handle errors
+//helper function to attempt == and handle errors
 fn eq_bool(v1: Value, v2: Value) -> Result<Value> {
     match v1 {
         Integer(x) => match v2 {

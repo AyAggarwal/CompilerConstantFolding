@@ -81,7 +81,7 @@ pub fn generate(input: PathBuf, output: PathBuf) -> Result<()> {
             //perform constant folding
             let first_pass = fold(file)?;
             let optimized_file = fold(first_pass)?;
-            
+
             //report errors or write out to path
             if let Some(out) = output.to_str() {
                 if let Ok(mut w) = fs::File::create(out) {
@@ -131,7 +131,6 @@ mod tests {
     fn test_if() {
         run_test("test_if")
     }
-
 
     #[test]
     fn test_subtract_underflow() {
