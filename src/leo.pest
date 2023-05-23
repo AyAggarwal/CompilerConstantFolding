@@ -15,9 +15,13 @@ input = { ident ~ ":" ~ value_type }
 
 
 // statements
-statement = { assign ~ ";" }
+statement = { assign ~ ";" | branchif ~ "\n"}
 
 assign = { "let" ~ ident ~ "=" ~ expression }
+
+branchif = {"if" ~ expression ~ "{" ~ "\n"* ~ codebundle ~ "}" ~ "else" ~ "{" ~ "\n"* ~ codebundle ~ "}" }
+
+codebundle = {(statement ~ "\n"+)* ~ statement?}
 
 
 // expressions
@@ -27,16 +31,18 @@ binary = { value ~ operator ~ expression }
 
 // operators
 operator = {
-    "+" | "-" | "*"  | "/"
+    "+" | "-" | "*"  | "/" | ">" | "<" | "=="
 }
 
 
 // values
-value = _{  integer | ident | "(" ~ expression ~ ")" }
+value = _{  integer | boolean | ident | "(" ~ expression ~ ")" }
 
 value_type = { "u8" }
 
 integer = @{ "_"? ~ ASCII_DIGIT+ ~ value_type }
+
+boolean = {"true" | "false"}
 
 ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 

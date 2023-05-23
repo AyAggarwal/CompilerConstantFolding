@@ -83,6 +83,25 @@ fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Statement {
                 expression,
             }
         }
+        Rule::branchif => {
+            let mut pair = pair.into_inner();
+            let expression = parse_expression(pair.next().unwrap());
+            let code_bundle_a = pair.next().unwrap().into_inner();
+            let mut statements_a = Vec::new();
+            for pair in code_bundle_a {
+                statements_a.push(parse_statement(pair.into_inner().next().unwrap()))
+            }
+            let code_bundle_b = pair.next().unwrap().into_inner();
+            let mut statements_b = Vec::new();
+            for pair in code_bundle_b {
+                statements_b.push(parse_statement(pair.into_inner().next().unwrap()))
+            }
+            Statement::If {
+                expression: expression,
+                statements_a: statements_a,
+                statements_b: statements_b,
+            }
+        }
         _ => panic!("failed to parse statement"),
     }
 }
@@ -111,6 +130,7 @@ fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Expression {
                 }
                 Rule::integer => Expression::Value(Box::new(parse_value(pair))),
                 Rule::ident => Expression::Value(Box::new(parse_value(pair))),
+                Rule::boolean => Expression::Value(Box::new(parse_value(pair))),
                 _ => panic!("failed to parse inner expression"),
             }
         }
@@ -140,6 +160,10 @@ fn parse_value(pair: pest::iterators::Pair<Rule>) -> Value {
 
             Value::Expression(Box::new(expression))
         }
+        Rule::boolean => {
+            let bool = pair.as_str().parse::<bool>().unwrap();
+            Value::Boolean(bool)
+        }
         _ => panic!("failed to parse value"),
     }
 }
@@ -150,6 +174,9 @@ fn parse_operator(pair: pest::iterators::Pair<Rule>) -> Operator {
         "-" => Operator::Subtract,
         "*" => Operator::Multiply,
         "/" => Operator::Divide,
+        ">" => Operator::GreaterThan,
+        "<" => Operator::LessThan,
+        "==" => Operator::Equal,
         _ => panic!("failed to parse operator"),
     }
 }

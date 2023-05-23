@@ -28,6 +28,11 @@ pub enum Statement {
         variable: String,
         expression: Expression,
     },
+    If {
+        expression: Expression,
+        statements_a: Vec<Statement>,
+        statements_b: Vec<Statement>,
+    },
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -48,6 +53,8 @@ pub enum Value {
     Integer(u8),
     // a
     Identifier(String),
+    // true
+    Boolean(bool),
     // (1u8 + a)
     Expression(Box<Expression>),
 }
@@ -58,6 +65,9 @@ pub enum Operator {
     Subtract,
     Multiply,
     Divide,
+    GreaterThan,
+    LessThan,
+    Equal,
 }
 
 //trait to get the type of a variable for code generation
@@ -105,6 +115,29 @@ impl std::fmt::Display for Statement {
             } => {
                 write!(f, "let {} = {};", variable, expression)
             }
+            Statement::If {
+                expression,
+                statements_a,
+                statements_b,
+            } => {
+                let branch_a = statements_a
+                    .iter()
+                    .map(|statement| format!("    {}", statement))
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                let branch_b = statements_b
+                    .iter()
+                    .map(|statement| format!("    {}", statement))
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                write!(
+                    f,
+                    "if {} {{\n{}\n}} else {{\n{}\n}}\n",
+                    expression, branch_a, branch_b
+                )
+            }
         }
     }
 }
@@ -141,6 +174,15 @@ impl std::fmt::Display for Operator {
             Operator::Divide => {
                 write!(f, "/")
             }
+            Operator::GreaterThan => {
+                write!(f, ">")
+            }
+            Operator::LessThan => {
+                write!(f, "<")
+            }
+            Operator::Equal => {
+                write!(f, "==")
+            }
         }
     }
 }
@@ -156,6 +198,9 @@ impl std::fmt::Display for Value {
             }
             Value::Expression(expression) => {
                 write!(f, "({})", expression)
+            }
+            Value::Boolean(boolean) => {
+                write!(f, "{}", boolean)
             }
         }
     }

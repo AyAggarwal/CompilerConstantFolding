@@ -7,6 +7,7 @@ pub enum CompilerError {
     Underflow,
     Overflow,
     DivByZero,
+    MismatchType,
 }
 
 #[derive(Debug, PartialEq)]
@@ -24,6 +25,9 @@ impl fmt::Display for CompilerError {
             CompilerError::Underflow => write!(f, "Integer underflow during evaluation"),
             CompilerError::Overflow => write!(f, "Integer overflow during evaluation"),
             CompilerError::DivByZero => write!(f, "Division by Zero during evaluation"),
+            CompilerError::MismatchType => {
+                write!(f, "Operation on mismatched types during evaluation")
+            }
         }
     }
 }

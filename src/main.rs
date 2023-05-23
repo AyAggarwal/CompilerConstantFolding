@@ -79,7 +79,9 @@ pub fn generate(input: PathBuf, output: PathBuf) -> Result<()> {
             //parse file
             let file = parse(&unparsed_file)?;
             //perform constant folding
-            let optimized_file = fold(file)?;
+            let first_pass = fold(file)?;
+            let optimized_file = fold(first_pass)?;
+            
             //report errors or write out to path
             if let Some(out) = output.to_str() {
                 if let Ok(mut w) = fs::File::create(out) {
@@ -119,6 +121,17 @@ mod tests {
     fn test_ident() {
         run_test("test_ident")
     }
+
+    #[test]
+    fn test_boolean() {
+        run_test("test_boolean")
+    }
+
+    #[test]
+    fn test_if() {
+        run_test("test_if")
+    }
+
 
     #[test]
     fn test_subtract_underflow() {
