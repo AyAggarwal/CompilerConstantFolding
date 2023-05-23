@@ -111,7 +111,7 @@ fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Expression {
                 }
                 Rule::integer => Expression::Value(Box::new(parse_value(pair))),
                 Rule::ident => Expression::Value(Box::new(parse_value(pair))),
-                _ => panic!("failed to parse inner expression")
+                _ => panic!("failed to parse inner expression"),
             }
         }
         _ => panic!("failed to parse expression"),

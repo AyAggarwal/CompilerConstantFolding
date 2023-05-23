@@ -16,7 +16,8 @@ use std::io::Write;
 
 fn main() {
     // Fetch file string.
-    let unparsed_file = fs::read_to_string("src/files/tests/test_basic.leo").expect("cannot read file");
+    let unparsed_file =
+        fs::read_to_string("src/files/tests/test_basic.leo").expect("cannot read file");
     println!("Unparsed file:\n{:?}\n", unparsed_file);
 
     // Create AST from file string.
@@ -48,23 +49,28 @@ mod tests {
     }
 
     #[test]
+    fn test_ident() {
+        run_test("test_ident")
+    }
+
+    #[test]
     fn test_subtract_underflow() {
         test_failure("test_sub_underflow", CompilerError::Underflow)
     }
 
     #[test]
     fn test_add_overflow() {
-        test_failure("test_add_overflow",CompilerError::Overflow)
+        test_failure("test_add_overflow", CompilerError::Overflow)
     }
 
     #[test]
     fn test_div_zero() {
-        test_failure("test_div_zero",CompilerError::DivByZero)
+        test_failure("test_div_zero", CompilerError::DivByZero)
     }
 
     #[test]
     fn test_mul_overflow() {
-        test_failure("test_mul_overflow",CompilerError::Overflow)
+        test_failure("test_mul_overflow", CompilerError::Overflow)
     }
 
     fn write_testfile(testname: &str) {
@@ -81,12 +87,15 @@ mod tests {
             let mut w = fs::File::create(write_to).unwrap();
             write!(&mut w, "{}", optimized_file);
         } else {
-            assert!(false, "could not write testfile due to error: {}", fold_result.err().unwrap())
+            assert!(
+                false,
+                "could not write testfile due to error: {}",
+                fold_result.err().unwrap()
+            )
         }
-
     }
 
-    fn test_failure(testname: &str,expected_error: CompilerError) {
+    fn test_failure(testname: &str, expected_error: CompilerError) {
         let read_from = format!("src/files/tests/{}.leo", testname);
         let unparsed_file = fs::read_to_string(read_from).expect("cannot read file");
 
