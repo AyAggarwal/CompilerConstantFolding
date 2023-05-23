@@ -11,32 +11,99 @@ pub use parser::*;
 pub mod optimizer;
 pub use optimizer::*;
 
+mod error;
+use error::*;
+
+use clap::Parser as P;
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
+
+// clap parsing struct for CLI commands
+#[derive(P)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    //optional name to parse
+    command: Option<String>,
+
+    //input file path including name, requires output
+    #[arg(short, long, requires = "output")]
+    input: PathBuf,
+
+    //output file path including name, requires input
+    #[arg(short, long)]
+    output: PathBuf,
+}
+
+type Result<T> = std::result::Result<T, GenerationError>;
 
 fn main() {
-    // Fetch file string.
-    let unparsed_file =
-        fs::read_to_string("src/files/tests/test_basic.leo").expect("cannot read file");
-    println!("Unparsed file:\n{:?}\n", unparsed_file);
+    let cli = Cli::parse();
+    //check for cli options
+    if cli.command == Some(String::from("generate")) {
+        let input = cli.input;
+        let output = cli.output;
+        let res = generate(input, output);
+        match res {
+            //success
+            Ok(_) => return,
+            //report error
+            Err(e) => println!("error generating file: {}", e),
+        }
+    } else {
+        //replicating the behavior of fn write_testfile, but printing it out to the console
+        let read_from = format!("src/files/tests/test_basic.leo");
+        let write_to = format!("src/files/actual/test_basicActual.leo");
+        //generate file
+        let result = generate(PathBuf::from(read_from), PathBuf::from(write_to));
+        match result {
+            Ok(_) => {
+                //print to console
+                let file = fs::read_to_string("src/files/actual/test_basicActual.leo").unwrap();
+                println!("{}", file)
+            }
+            Err(e) => {
+                //report error
+                println!("error generating file: {}", e);
+            }
+        };
+    }
+}
 
-    // Create AST from file string.
-    let file = parse(&unparsed_file).expect("unsuccessful parse");
-
-    // Perform constant folding.
-    let optimized_file = fold(file).expect("could not fold constants");
-
-    // Write program to output.
-    let mut w = fs::File::create("src/files/actual/test_basicActual.leo").unwrap();
-    write!(&mut w, "{}", optimized_file).unwrap();
-    println!("Resulting program:\n\n{}", optimized_file);
+//code generation function which takes an input and output path
+pub fn generate(input: PathBuf, output: PathBuf) -> Result<()> {
+    match input.to_str() {
+        Some(path) => {
+            let unparsed_file =
+                fs::read_to_string(path).map_err(|_| GenerationError::FileReadError)?;
+            //parse file
+            let file = parse(&unparsed_file)?;
+            //perform constant folding
+            let optimized_file = fold(file)?;
+            //report errors or write out to path
+            if let Some(out) = output.to_str() {
+                if let Ok(mut w) = fs::File::create(out) {
+                    write!(&mut w, "{}", optimized_file).unwrap();
+                    Ok(())
+                } else {
+                    Err(GenerationError::FileWriteError)
+                }
+            } else {
+                Err(GenerationError::FileWriteError)
+            }
+        }
+        None => {
+            return Err(GenerationError::FileReadError);
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{optimizer::*, parser::*};
+    use crate::error::{CompilerError, GenerationError};
+    use crate::generate;
     use std::fs;
-    use std::io::Write;
+    use std::path::PathBuf;
 
     #[test]
     fn test_basic() {
@@ -55,56 +122,57 @@ mod tests {
 
     #[test]
     fn test_subtract_underflow() {
-        test_failure("test_sub_underflow", CompilerError::Underflow)
+        test_failure(
+            "test_sub_underflow",
+            GenerationError::CompilerError(CompilerError::Underflow),
+        )
     }
 
     #[test]
     fn test_add_overflow() {
-        test_failure("test_add_overflow", CompilerError::Overflow)
+        test_failure(
+            "test_add_overflow",
+            GenerationError::CompilerError(CompilerError::Overflow),
+        )
     }
 
     #[test]
     fn test_div_zero() {
-        test_failure("test_div_zero", CompilerError::DivByZero)
+        test_failure(
+            "test_div_zero",
+            GenerationError::CompilerError(CompilerError::DivByZero),
+        )
     }
 
     #[test]
     fn test_mul_overflow() {
-        test_failure("test_mul_overflow", CompilerError::Overflow)
+        test_failure(
+            "test_mul_overflow",
+            GenerationError::CompilerError(CompilerError::Overflow),
+        )
     }
 
     //Writes a testfile to the /src/files/actual directory based on the filename
-    //which must exist in the /src/files/tests directory. 
+    //which must exist in the /src/files/tests directory.
     fn write_testfile(testname: &str) {
         let read_from = format!("src/files/tests/{}.leo", testname);
-        let unparsed_file = fs::read_to_string(read_from).expect("cannot read file");
-
-        let file = parse(&unparsed_file).expect("unsuccessful parse");
-        let fold_result = fold(file);
-        let optimized_file;
-        if fold_result.is_ok() {
-            optimized_file = fold_result.unwrap();
-            let write_to = format!("src/files/actual/{}Actual.leo", testname);
-
-            let mut w = fs::File::create(write_to).unwrap();
-            write!(&mut w, "{}", optimized_file);
-        } else {
-            assert!(
-                false,
-                "could not write testfile due to error: {}",
-                fold_result.err().unwrap()
-            )
-        }
+        let write_to = format!("src/files/actual/{}Actual.leo", testname);
+        let result = generate(PathBuf::from(read_from), PathBuf::from(write_to));
+        match result {
+            Ok(_) => return,
+            Err(e) => {
+                println!("{}", e);
+                assert!(false)
+            }
+        };
     }
 
     //attempts to compile a testfile and expects an error of provided type
-    fn test_failure(testname: &str, expected_error: CompilerError) {
+    fn test_failure(testname: &str, expected_error: GenerationError) {
         let read_from = format!("src/files/tests/{}.leo", testname);
-        let unparsed_file = fs::read_to_string(read_from).expect("cannot read file");
-
-        let file = parse(&unparsed_file).expect("unsuccessful parse");
-        let folding_err = fold(file).unwrap_err();
-        assert_eq!(expected_error, folding_err)
+        let write_to = format!("src/files/actual/{}Actual.leo", testname);
+        let result = generate(PathBuf::from(read_from), PathBuf::from(write_to)).unwrap_err();
+        assert_eq!(expected_error, result)
     }
 
     //compares the generated testfile to the exepcted based on the testname

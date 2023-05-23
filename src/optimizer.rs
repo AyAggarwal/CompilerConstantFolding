@@ -1,28 +1,11 @@
 use crate::ast::*;
+use crate::error::CompilerError;
 use crate::Value::Integer;
 use crate::{Expression, Program};
 use std::collections::HashMap;
-use std::{fmt, u8};
+use std::u8;
 
 type Result<T> = std::result::Result<T, CompilerError>;
-
-#[derive(Debug, PartialEq)]
-pub enum CompilerError {
-    Underflow,
-    Overflow,
-    DivByZero,
-}
-
-// simple display for error variants related to compilation
-impl fmt::Display for CompilerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            CompilerError::Underflow => write!(f, "Integer underflow during evaluation"),
-            CompilerError::Overflow => write!(f, "Integer overflow during evaluation"),
-            CompilerError::DivByZero => write!(f, "Division by Zero during evaluation"),
-        }
-    }
-}
 
 //takes in a given Program AST and returns a new AST with constants, expressions, and booleans folded.
 pub fn fold(program: Program) -> Result<Program> {
@@ -44,7 +27,7 @@ pub fn fold(program: Program) -> Result<Program> {
                 //1u8 + 2u8
                 expression,
             } => {
-                //recursive evaluation of the expression tree, with memory provided. memory is not mutated by evaluate fn. 
+                //recursive evaluation of the expression tree, with memory provided. memory is not mutated by evaluate fn.
                 let opt = evaluate(expression.clone(), &mut memory);
                 match opt {
                     Some(eval_result) => match eval_result {
@@ -105,7 +88,7 @@ fn evaluate(exp: Expression, memory: &mut HashMap<String, u8>) -> Option<Result<
                     //return evaluation error back to caller
                     Err(e) => return Some(Err(e)),
                 },
-                //could not fold, move on 
+                //could not fold, move on
                 None => return None,
             }
 

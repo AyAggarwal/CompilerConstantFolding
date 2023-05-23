@@ -1,6 +1,18 @@
 # Aleo Constant Folidng Implemetation
 This repo contains an example optimizer for the basic leo subset language. 
 
+To generate compiler optimized code, the command `generate` must be used. Arguments to Input and Output are paths to filenames and are required.
+```
+cargo run generate  --input <INPUT> --output <OUTPUT>
+```
+
+as an example, try creating an after.leo file based on the given before in the files directory!
+```
+cargo run generate --input src/files/before.leo --output src/files/after.leo 
+
+```
+`after.leo` should appear in `src/files`
+
 The main program should work out of the box without any configuration. To test the basic usage run the following in the root directory. 
 ```
 cargo run
@@ -10,9 +22,6 @@ To test the advanced robustness features run the following command in the root d
 ```
 cargo test
 ```
-
-# Code Generation
-Todo
 
 # Implementation Overview
 ### Optimizer
