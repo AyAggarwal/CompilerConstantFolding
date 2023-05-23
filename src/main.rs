@@ -73,6 +73,8 @@ mod tests {
         test_failure("test_mul_overflow", CompilerError::Overflow)
     }
 
+    //Writes a testfile to the /src/files/actual directory based on the filename
+    //which must exist in the /src/files/tests directory. 
     fn write_testfile(testname: &str) {
         let read_from = format!("src/files/tests/{}.leo", testname);
         let unparsed_file = fs::read_to_string(read_from).expect("cannot read file");
@@ -95,6 +97,7 @@ mod tests {
         }
     }
 
+    //attempts to compile a testfile and expects an error of provided type
     fn test_failure(testname: &str, expected_error: CompilerError) {
         let read_from = format!("src/files/tests/{}.leo", testname);
         let unparsed_file = fs::read_to_string(read_from).expect("cannot read file");
@@ -104,6 +107,7 @@ mod tests {
         assert_eq!(expected_error, folding_err)
     }
 
+    //compares the generated testfile to the exepcted based on the testname
     fn compare_testfile(testname: &str) {
         let path_to_actual = format!("src/files/actual/{}Actual.leo", testname);
         let actual = fs::read_to_string(path_to_actual).expect("cannot read file");
