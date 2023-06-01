@@ -1,4 +1,4 @@
-# Aleo Constant Folidng Implemetation
+# Constant Folidng Implemetation
 This repo contains an example optimizer for the basic leo subset language. 
 
 To generate compiler optimized code, the command `generate` must be used. Arguments to Input and Output are paths to filenames and are required.
